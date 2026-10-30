@@ -3,6 +3,7 @@ import { customElement, property, state } from "lit/decorators.js";
 import { solarSvg } from "./assets/solar-svg";
 import { CARD_NAME, CARD_VERSION, PLATFORM, type EntityKey, type SolarState } from "./const";
 import { computeState, loadRatio, numeric, resolveEntities } from "./helpers/resolve";
+import { findWeather, skyPosition, weatherScene } from "./helpers/sky";
 import { localize, resolveLanguage } from "./localize";
 import { cardStyles } from "./styles";
 import type {
@@ -63,6 +64,7 @@ export class IntelbrasSolarCard extends LitElement {
       schema: [
         { name: "device", selector: { device: { filter: { integration: PLATFORM } } } },
         { name: "name", selector: { text: {} } },
+        { name: "weather_entity", selector: { entity: { filter: { domain: "weather" } } } },
         {
           type: "grid",
           name: "",
@@ -121,7 +123,7 @@ export class IntelbrasSolarCard extends LitElement {
     if (changed.has("_config")) return true;
     const before = changed.get("hass") as HassObject | undefined;
     if (!before || !this.hass) return true;
-    const ids = [...Object.values(this._entities), "sun.sun"];
+    const ids = [...Object.values(this._entities), "sun.sun", findWeather(this.hass, this._config.weather_entity)];
     return ids.some((id) => id && before.states[id] !== this.hass!.states[id]);
   }
 
@@ -187,7 +189,11 @@ export class IntelbrasSolarCard extends LitElement {
     const solarState = computeState(this.hass, this._entities);
     if (solarState === "unavailable") return this._renderUnavailable();
     const load = loadRatio(this.hass, this._entities);
-    const style = `--isc-load:${load.toFixed(2)};--isc-shine-duration:${(6.5 - load * 3.5).toFixed(2)}s`;
+    const sky = skyPosition(this.hass);
+    const weather = weatherScene(this.hass, findWeather(this.hass, this._config.weather_entity));
+    const style =
+      `--isc-load:${load.toFixed(2)};--isc-shine-duration:${(6.5 - load * 3.5).toFixed(2)}s;` +
+      `--isc-sun-i:${sky.intensity.toFixed(2)}`;
     return html`
       <ha-card style=${style}>
         <div class="preview">
@@ -203,7 +209,7 @@ export class IntelbrasSolarCard extends LitElement {
           </div>
           ${this._config.compact_view
             ? nothing
-            : html`<div class="hero" @click=${() => this._moreInfo()}>${solarSvg(solarState)}</div>`}
+            : html`<div class="hero" @click=${() => this._moreInfo()}>${solarSvg(solarState, weather, sky)}</div>`}
           <div class="metadata">${this._renderName()} ${this._renderStatus(solarState, load)}</div>
           ${this._renderStrings(solarState)} ${this._renderStats(solarState)}
         </div>

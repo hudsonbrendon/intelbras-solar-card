@@ -13,10 +13,16 @@ status, stats and a toolbar — but for a solar plant:
 
 - **Minimal drawn illustration** in the same grey / white style as the HP
   printer and vacuum cards: a roof with a 2×4 PV array. While producing the
-  sun turns and a shine sweeps the panels (faster with more power); the sun
-  greys out on standby, moon and stars at night (`sun.sun`), a warning sign
-  over the ridge on fault, greyed out when the inverter is offline. Respects
-  `prefers-reduced-motion` and dark mode.
+  sun turns and a shine sweeps the panels (faster with more power); a warning
+  sign over the ridge on fault, greyed out when the inverter is offline.
+  Respects `prefers-reduced-motion` and dark mode.
+- **Real sky**: the sun walks an arc from sunrise to sunset (`sun.sun`), orange
+  and dim near the horizon, yellow and glowing when high (elevation); at night
+  the moon walks the same arc, with stars on clear nights.
+- **Weather** from a `weather.*` entity: a cloud over the sun when partly
+  cloudy, drifting clouds and a dimmed sun when cloudy, rain falling over the
+  roof (heavier when pouring), lightning flashes in storms, snow, fog bands and
+  fast clouds on windy days.
 - **Tips**: energy today, inverter temperature, datalogger Wi-Fi and active
   alarms.
 - **Power** in large type with a load bar (`% of nominal kW`) and one pill per
@@ -48,6 +54,7 @@ device:
 ```yaml
 type: custom:intelbras-solar-card
 device: f095df…   # device id of the inverter (pick it in the visual editor)
+weather_entity: weather.home
 ```
 
 | Option | Default | Description |
@@ -55,6 +62,7 @@ device: f095df…   # device id of the inverter (pick it in the visual editor)
 | `device` | — | Device registry id of the inverter. |
 | `entities` | — | Explicit overrides per key (`work_state`, `ac_power`, `energy_today`...). Without `device`, `entities.work_state` is required. |
 | `name` | device name | Title shown under the illustration. |
+| `weather_entity` | auto | `weather.*` entity for the sky (defaults to `weather.home`, `weather.forecast_home` or the first weather entity). |
 | `show_name` / `show_status` / `show_strings` / `show_toolbar` | `true` | Toggle sections. |
 | `compact_view` | `false` | Hide the illustration, strings and stats. |
 | `language` | HA language | Force `en` or `pt-BR`. |

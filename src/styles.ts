@@ -19,7 +19,12 @@ export const cardStyles = css`
     --isc-cell-night: #9ea4ab;
     --isc-cell-line: #ffffff;
     --isc-outline: #9aa0a6;
+    --isc-sun-low: #ff7043;
+    --isc-cloud: #ffffff;
+    --isc-cloud-dark: #d5d9de;
+    --isc-rain: #90a4ae;
     --isc-load: 0;
+    --isc-sun-i: 1;
     --isc-shine-duration: 5s;
     display: flex;
     flex: 1;
@@ -33,6 +38,9 @@ export const cardStyles = css`
     --isc-cell-night: #1b1e22;
     --isc-cell-line: #4a4f58;
     --isc-outline: #6b7178;
+    --isc-cloud: #5a6068;
+    --isc-cloud-dark: #464b53;
+    --isc-rain: #8a9fb0;
   }
 
   ha-card {
@@ -113,15 +121,28 @@ export const cardStyles = css`
     stroke-width: 0.9;
     opacity: 0.8;
   }
+
+  /* ── sky: the sun follows sun.sun; low sun is orange and dim, high sun yellow */
+  .solar .body {
+    transition: transform 2s ease;
+  }
+  .solar .sun {
+    --isc-sun-color: color-mix(in srgb, var(--isc-sun) calc(var(--isc-sun-i) * 100%), var(--isc-sun-low));
+    transition: opacity 0.8s ease;
+  }
   .solar .sun-core {
-    fill: var(--isc-outline);
-    transition: fill 0.6s ease;
+    fill: var(--isc-sun-color);
   }
   .solar .sun-rays {
-    stroke: var(--isc-outline);
-    transform-origin: 282px 30px;
+    stroke: var(--isc-sun-color);
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+  .solar .sun-glow {
+    opacity: calc(0.2 + var(--isc-sun-i) * 0.8);
   }
   .solar .moon,
+  .solar .stars,
   .solar .warn,
   .solar .shine {
     opacity: 0;
@@ -130,39 +151,13 @@ export const cardStyles = css`
   .solar .star {
     fill: var(--isc-outline);
   }
-
-  /* producing / limited: sun turns, a shine sweeps the array (faster with more power) */
-  .solar.producing .sun-core,
-  .solar.limited .sun-core,
-  .solar.starting .sun-core {
-    fill: var(--isc-sun);
-  }
-  .solar.producing .sun-rays,
-  .solar.limited .sun-rays,
-  .solar.starting .sun-rays {
-    stroke: var(--isc-sun);
-  }
-  .solar.producing .sun-rays,
-  .solar.limited .sun-rays {
-    animation: spin 24s linear infinite;
-  }
-  .solar.producing .shine,
-  .solar.limited .shine {
-    animation: shine var(--isc-shine-duration) ease-in-out infinite;
-  }
-  /* starting: rays breathe */
-  .solar.starting .sun-rays {
-    animation: breathe 1.6s ease-in-out infinite;
-  }
-  /* night: moon + stars, darker cells */
   .solar.night .sun {
     opacity: 0;
   }
-  .solar.night .moon {
+  .solar.night .moon,
+  .solar.night.wx-clear .stars,
+  .solar.night.wx-wind .stars {
     opacity: 1;
-  }
-  .solar.night .cell {
-    fill: var(--isc-cell-night);
   }
   .solar.night .star {
     animation: twinkle 3s ease-in-out infinite;
@@ -173,7 +168,129 @@ export const cardStyles = css`
   .solar.night .s3 {
     animation-delay: 2s;
   }
-  /* fault: warning sign blinks over the ridge */
+
+  /* ── weather (wx-*: clear, partly, cloudy, fog, rain, pour, storm, snow, wind) */
+  .solar .cloud,
+  .solar .rain,
+  .solar .snow,
+  .solar .fog,
+  .solar .bolt {
+    display: none;
+  }
+  .solar .cloud-outline {
+    fill: var(--isc-outline);
+    stroke: var(--isc-outline);
+    stroke-width: 2.6;
+  }
+  .solar .cloud-fill {
+    fill: var(--isc-cloud);
+  }
+  .solar .drift {
+    animation: drift 9s ease-in-out infinite alternate;
+  }
+  .solar .c2 .drift {
+    animation-duration: 12s;
+    animation-delay: -4s;
+  }
+  .solar .c3 .drift {
+    animation-duration: 10s;
+    animation-delay: -7s;
+  }
+  .solar.wx-partly .c-near,
+  .solar.wx-wind .c-near,
+  .solar.wx-wind .c3,
+  .solar.wx-cloudy .cloud,
+  .solar.wx-rain .cloud,
+  .solar.wx-pour .cloud,
+  .solar.wx-storm .cloud,
+  .solar.wx-snow .cloud {
+    display: inline;
+  }
+  .solar.wx-cloudy .sun,
+  .solar.wx-rain .sun,
+  .solar.wx-snow .sun {
+    opacity: 0.35;
+  }
+  .solar.wx-pour .sun,
+  .solar.wx-storm .sun {
+    opacity: 0.15;
+  }
+  .solar.wx-fog .sun {
+    opacity: 0.5;
+  }
+  .solar.wx-rain .cloud-fill,
+  .solar.wx-pour .cloud-fill,
+  .solar.wx-storm .cloud-fill {
+    fill: var(--isc-cloud-dark);
+  }
+  .solar.wx-wind .drift {
+    animation-duration: 3s;
+  }
+  /* rain: drops fall in front of the roof; pouring adds drops and speed */
+  .solar.wx-rain .rain,
+  .solar.wx-pour .rain,
+  .solar.wx-storm .rain {
+    display: inline;
+  }
+  .solar .drop {
+    stroke: var(--isc-rain);
+    stroke-width: 2;
+    stroke-linecap: round;
+    opacity: 0;
+    animation: fall 1.1s linear infinite;
+  }
+  .solar.wx-rain .drop.heavy {
+    display: none;
+  }
+  .solar.wx-pour .drop,
+  .solar.wx-storm .drop {
+    animation-duration: 0.7s;
+  }
+  .solar.wx-storm .bolt {
+    display: inline;
+    fill: var(--isc-sun);
+    opacity: 0;
+    animation: flash 4s linear infinite;
+  }
+  .solar.wx-snow .snow {
+    display: inline;
+  }
+  .solar .flake {
+    fill: var(--isc-cloud);
+    stroke: var(--isc-outline);
+    stroke-width: 0.6;
+    opacity: 0;
+    animation: snowfall 3.6s linear infinite;
+  }
+  .solar.wx-fog .fog {
+    display: inline;
+  }
+  .solar .fog line {
+    stroke: var(--isc-outline);
+    stroke-width: 4;
+    stroke-linecap: round;
+    opacity: 0.55;
+    animation: drift 6s ease-in-out infinite alternate;
+  }
+  .solar .fog line:nth-child(even) {
+    animation-delay: -3s;
+  }
+
+  /* ── inverter state */
+  .solar.producing .sun-rays,
+  .solar.limited .sun-rays {
+    animation: spin 24s linear infinite;
+  }
+  .solar.producing .shine,
+  .solar.limited .shine {
+    animation: shine var(--isc-shine-duration) ease-in-out infinite;
+  }
+  .solar.starting .sun-rays {
+    animation: breathe 1.6s ease-in-out infinite;
+  }
+  .solar.night .cell {
+    fill: var(--isc-cell-night);
+  }
   .solar.fault .warn {
     opacity: 1;
     animation: breathe 1.2s ease-in-out infinite;
@@ -201,6 +318,55 @@ export const cardStyles = css`
       opacity: 0;
     }
   }
+  @keyframes drift {
+    from {
+      transform: translateX(-6px);
+    }
+    to {
+      transform: translateX(6px);
+    }
+  }
+  @keyframes fall {
+    0% {
+      transform: translate(0, 0);
+      opacity: 0;
+    }
+    10% {
+      opacity: 1;
+    }
+    100% {
+      transform: translate(-8px, 72px);
+      opacity: 0;
+    }
+  }
+  @keyframes snowfall {
+    0% {
+      transform: translate(0, 0);
+      opacity: 0;
+    }
+    15% {
+      opacity: 1;
+    }
+    50% {
+      transform: translate(5px, 36px);
+    }
+    100% {
+      transform: translate(-3px, 72px);
+      opacity: 0;
+    }
+  }
+  @keyframes flash {
+    0%,
+    86%,
+    90%,
+    100% {
+      opacity: 0;
+    }
+    87%,
+    92% {
+      opacity: 1;
+    }
+  }
   @keyframes breathe {
     0%,
     100% {
@@ -222,6 +388,10 @@ export const cardStyles = css`
   @media (prefers-reduced-motion: reduce) {
     .solar * {
       animation: none !important;
+    }
+    .solar .drop,
+    .solar .flake {
+      opacity: 0.8;
     }
   }
 

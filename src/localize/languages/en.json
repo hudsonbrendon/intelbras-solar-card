@@ -47,6 +47,7 @@
     "show_status": "Show status",
     "show_toolbar": "Show toolbar",
     "show_strings": "Show MPPT strings",
-    "compact_view": "Compact view"
+    "compact_view": "Compact view",
+    "weather_entity": "Weather entity"
   }
 }

@@ -23,6 +23,8 @@ export interface SolarCardConfig {
   device?: string;
   entities?: Partial<Record<EntityKey, string>>;
   name?: string;
+  /** weather.* entity driving clouds / rain / snow / fog (auto-detected when omitted). */
+  weather_entity?: string;
   show_name?: boolean;
   show_status?: boolean;
   show_toolbar?: boolean;

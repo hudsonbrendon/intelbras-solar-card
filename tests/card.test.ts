@@ -3,6 +3,7 @@ import "../src/intelbras-solar-card";
 import { CARD_NAME } from "../src/const";
 import { computeState, loadRatio, numeric, resolveEntities } from "../src/helpers/resolve";
 import { localize } from "../src/localize";
+import { findWeather, skyPosition, weatherScene } from "../src/helpers/sky";
 import { INVERTER, mockHass, type MockOpts } from "./fixtures/hass";
 import type { SolarCardConfig } from "../src/types";
 
@@ -198,5 +199,84 @@ describe("actions", () => {
     expect(localize("status.producing", "pt")).toBe("Gerando");
     expect(localize("status.producing", "de")).toBe("Producing");
     expect(localize("x.y")).toBe("x.y");
+  });
+});
+
+describe("sky", () => {
+  const H = 3_600_000;
+  const noon = Date.parse("2026-10-30T15:00:00Z");
+  const withSun = (state: string, attrs: Record<string, unknown>) => {
+    const hass = mockHass();
+    hass.states["sun.sun"] = { entity_id: "sun.sun", state, attributes: attrs };
+    return hass;
+  };
+
+  it("maps weather conditions and finds the weather entity", () => {
+    const hass = mockHass();
+    expect(findWeather(hass)).toBeUndefined();
+    hass.states["weather.z"] = { entity_id: "weather.z", state: "pouring", attributes: {} };
+    hass.states["weather.a"] = { entity_id: "weather.a", state: "lightning-rainy", attributes: {} };
+    expect(findWeather(hass)).toBe("weather.a");
+    hass.states["weather.home"] = { entity_id: "weather.home", state: "cloudy", attributes: {} };
+    expect(findWeather(hass)).toBe("weather.home");
+    expect(findWeather(hass, "weather.z")).toBe("weather.z");
+    expect(weatherScene(hass, "weather.z")).toBe("pour");
+    expect(weatherScene(hass, "weather.a")).toBe("storm");
+    expect(weatherScene(hass, "weather.home")).toBe("cloudy");
+    expect(weatherScene(hass, "weather.none")).toBe("clear");
+    expect(weatherScene(hass)).toBe("clear");
+  });
+
+  it("puts the sun on its arc from sun.sun", () => {
+    // rose 6 h ago, sets in 6 h -> top of the arc, high elevation -> full intensity
+    const top = skyPosition(
+      withSun("above_horizon", {
+        next_rising: new Date(noon + 18 * H).toISOString(),
+        next_setting: new Date(noon + 6 * H).toISOString(),
+        elevation: 80,
+      }),
+      noon
+    );
+    expect(top.x).toBeCloseTo(160);
+    expect(top.y).toBeCloseTo(14);
+    expect(top.intensity).toBe(1);
+    // 1 h after sunrise, low elevation -> left, low, dim
+    const early = skyPosition(
+      withSun("above_horizon", {
+        next_rising: new Date(noon + 23 * H).toISOString(),
+        next_setting: new Date(noon + 11 * H).toISOString(),
+        elevation: 10,
+      }),
+      noon
+    );
+    expect(early.x).toBeLessThan(60);
+    expect(early.intensity).toBeLessThan(0.25);
+    // night: the moon walks from sunset to sunrise, no sun intensity
+    const night = skyPosition(
+      withSun("below_horizon", {
+        next_rising: new Date(noon + 3 * H).toISOString(),
+        next_setting: new Date(noon + 15 * H).toISOString(),
+      }),
+      noon
+    );
+    expect(night.x).toBeGreaterThan(220);
+    expect(night.intensity).toBe(0);
+    // no sun entity: falls back to the clock
+    const local = new Date(2026, 9, 30, 12, 0).getTime();
+    const hass = mockHass();
+    delete hass.states["sun.sun"];
+    expect(skyPosition(hass, local).x).toBeCloseTo(160);
+    expect(skyPosition(hass, local).intensity).toBeCloseTo(1);
+    expect(skyPosition(undefined, new Date(2026, 9, 30, 0, 0).getTime()).intensity).toBe(0);
+  });
+
+  it("renders the weather scene and sun intensity", async () => {
+    const el = await mount({ device: INVERTER, weather_entity: "weather.casa" });
+    el.hass = mockHass();
+    el.hass.states["weather.casa"] = { entity_id: "weather.casa", state: "rainy", attributes: {} };
+    await el.updateComplete;
+    expect($(el, "svg.solar")!.classList.contains("wx-rain")).toBe(true);
+    expect(($(el, "ha-card") as HTMLElement).getAttribute("style")).toMatch(/--isc-sun-i:\d/);
+    expect(($(el, ".body") as SVGElement).getAttribute("style")).toContain("translate(");
   });
 });

@@ -47,6 +47,7 @@
     "show_status": "Mostrar status",
     "show_toolbar": "Mostrar barra de ações",
     "show_strings": "Mostrar strings MPPT",
-    "compact_view": "Modo compacto"
+    "compact_view": "Modo compacto",
+    "weather_entity": "Entidade de clima"
   }
 }

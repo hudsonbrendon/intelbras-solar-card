@@ -1,4 +1,5 @@
 import { svg, type TemplateResult } from "lit";
+import type { SkyPosition, Weather } from "../helpers/sky";
 
 // Roof plane seen from the front: ridge y=56 (x 84..236), eave y=148 (x 28..292).
 // P(u, v) maps a point of the plane (u across, v down, both 0..1) to the SVG.
@@ -42,16 +43,49 @@ const panel = ({ u0, v0, u1, v1 }: (typeof PANELS)[number]): TemplateResult => {
   `;
 };
 
+const RAYS = Array.from({ length: 8 }, (_, i) => {
+  const a = (i * Math.PI) / 4;
+  const c = Math.cos(a);
+  const n = Math.sin(a);
+  return svg`<line x1="${(15 * c).toFixed(1)}" y1="${(15 * n).toFixed(1)}" x2="${(20 * c).toFixed(1)}" y2="${(20 * n).toFixed(1)}" />`;
+});
+
+// Cloud: outline drawn by a thicker copy behind a filled copy (clean union of circles).
+const cloud = (cls: string, x: number, y: number, scale = 1): TemplateResult => svg`
+  <g class="cloud ${cls}" transform="translate(${x} ${y}) scale(${scale})">
+    <g class="drift">
+      <use href="#isc-cloud" class="cloud-outline" />
+      <use href="#isc-cloud" class="cloud-fill" />
+    </g>
+  </g>
+`;
+
+// [x, y, delay s, heavy-only]
+const DROPS: Array<[number, number, number, boolean]> = [
+  [62, 40, 0, false], [74, 44, -0.45, false], [86, 40, -0.2, true], [96, 42, -0.7, false],
+  [146, 30, -0.3, false], [156, 34, -0.8, true], [166, 30, -0.1, false], [176, 32, -0.55, true],
+  [222, 34, -0.65, false], [232, 36, -0.25, true], [242, 34, -0.9, false], [252, 36, -0.4, false],
+  [68, 46, -0.85, true], [240, 40, -0.15, true],
+];
+
+const STARS: Array<[number, number, number, string]> = [
+  [40, 22, 1.3, ""], [118, 12, 1.1, "s2"], [206, 20, 1.4, "s3"], [302, 44, 1.1, "s2"], [86, 44, 1, "s3"],
+];
+
 /**
- * Inline illustration: a roof with a 2x4 PV array, a small sun (moon at night).
+ * Inline illustration: a roof with a 2x4 PV array under a sky that follows the
+ * real sun (`sun.sun`) and weather.
  *
- * Animated parts carry classes targeted by styles.ts: `.sun-rays`, `.sun`,
- * `.shine`, `.moon`, `.star`, `.warn`. Colours come from CSS variables so
- * themes and dark mode restyle it.
+ * Animated parts carry classes targeted by styles.ts: `.body` (sun / moon on
+ * its arc), `.sun-rays`, `.sun-glow`, `.shine`, `.cloud`, `.drop`, `.flake`,
+ * `.bolt`, `.fog`, `.star`, `.warn`. Colours come from CSS variables so themes
+ * and dark mode restyle it.
  */
-export function solarSvg(state: string): TemplateResult {
+export function solarSvg(state: string, weather: Weather = "clear", sky?: SkyPosition): TemplateResult {
+  const x = sky?.x ?? 282;
+  const y = sky?.y ?? 30;
   return svg`
-    <svg class="solar ${state}" viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg"
+    <svg class="solar ${state} wx-${weather}" viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg"
          role="img" aria-label="solar panels">
       <defs>
         <clipPath id="isc-panels-clip">
@@ -62,28 +96,38 @@ export function solarSvg(state: string): TemplateResult {
           <stop offset="0.5" stop-color="#ffffff" stop-opacity="0.75" />
           <stop offset="1" stop-color="#ffffff" stop-opacity="0" />
         </linearGradient>
+        <radialGradient id="isc-sun-glow">
+          <stop offset="0" stop-color="#ffd54f" stop-opacity="0.85" />
+          <stop offset="1" stop-color="#ffd54f" stop-opacity="0" />
+        </radialGradient>
+        <g id="isc-cloud">
+          <circle cx="-12" cy="2" r="7" /><circle cx="0" cy="-4" r="10" /><circle cx="12" cy="1" r="8" />
+          <rect x="-12" y="0" width="24" height="9" />
+        </g>
       </defs>
 
       <!-- shadow -->
       <ellipse cx="160" cy="188" rx="136" ry="7" fill="rgba(0,0,0,0.12)" />
 
-      <!-- sky: sun by day, moon at night -->
-      <g class="sun">
-        <g class="sun-rays" stroke-width="2.4" stroke-linecap="round">
-          <line x1="282" y1="10" x2="282" y2="15" /><line x1="282" y1="45" x2="282" y2="50" />
-          <line x1="262" y1="30" x2="267" y2="30" /><line x1="297" y1="30" x2="302" y2="30" />
-          <line x1="268" y1="16" x2="271.5" y2="19.5" /><line x1="292.5" y1="40.5" x2="296" y2="44" />
-          <line x1="268" y1="44" x2="271.5" y2="40.5" /><line x1="292.5" y1="19.5" x2="296" y2="16" />
-        </g>
-        <circle class="sun-core" cx="282" cy="30" r="10" />
-      </g>
-      <g class="moon">
-        <path d="M286 18 a12 12 0 1 0 8 20 a9.5 9.5 0 1 1 -8 -20 z" />
-        <circle class="star" cx="246" cy="18" r="1.4" />
-        <circle class="star s2" cx="304" cy="54" r="1.1" />
-        <circle class="star s3" cx="262" cy="46" r="1" />
+      <!-- stars (clear nights) -->
+      <g class="stars">
+        ${STARS.map(([sx, sy, r, c]) => svg`<circle class="star ${c}" cx="${sx}" cy="${sy}" r="${r}" />`)}
       </g>
 
+      <!-- sun by day, moon by night, on an arc that follows the real sun -->
+      <g class="body" style="transform: translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)">
+        <g class="sun">
+          <circle class="sun-glow" r="24" fill="url(#isc-sun-glow)" />
+          <g class="sun-rays" stroke-width="2.4" stroke-linecap="round">${RAYS}</g>
+          <circle class="sun-core" r="10" />
+        </g>
+        <g class="moon"><path d="M4 -12 a12 12 0 1 0 8 20 a9.5 9.5 0 1 1 -8 -20 z" /></g>
+        ${cloud("c-near", 16, 10, 1)}
+      </g>
+
+      <!-- weather -->
+      ${cloud("c1", 80, 30, 1.3)} ${cloud("c2", 160, 20, 1.15)} ${cloud("c3", 238, 26, 1.4)}
+      <polygon class="bolt" points="166,30 159,44 165,44 160,56 173,40 167,40 171,30" />
       <!-- wall under the eave -->
       <rect x="48" y="156" width="224" height="26" fill="var(--isc-wall)"
             stroke="var(--isc-outline)" stroke-width="1.2" />
@@ -100,6 +144,18 @@ export function solarSvg(state: string): TemplateResult {
       <g class="panels" stroke-linejoin="round">${PANELS.map(panel)}</g>
       <g clip-path="url(#isc-panels-clip)">
         <rect class="shine" x="-60" y="50" width="56" height="110" fill="url(#isc-shine-grad)" />
+      </g>
+
+      <!-- precipitation and fog fall in front of the roof -->
+      <g class="rain">
+        ${DROPS.map(([dx, dy, d, heavy]) => svg`<line class="drop ${heavy ? "heavy" : ""}" x1="${dx}" y1="${dy}" x2="${dx - 2}" y2="${dy + 8}" style="animation-delay:${d}s" />`)}
+      </g>
+      <g class="snow">
+        ${DROPS.map(([dx, dy, d]) => svg`<circle class="flake" cx="${dx}" cy="${dy}" r="1.7" style="animation-delay:${d * 3}s" />`)}
+      </g>
+      <g class="fog">
+        <line x1="40" y1="66" x2="196" y2="66" /><line x1="118" y1="78" x2="288" y2="78" />
+        <line x1="30" y1="90" x2="210" y2="90" /><line x1="96" y1="102" x2="270" y2="102" />
       </g>
 
       <!-- fault sign over the ridge -->
