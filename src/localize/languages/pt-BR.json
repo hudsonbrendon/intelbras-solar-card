@@ -1,0 +1,52 @@
+{
+  "common": {
+    "name": "Intelbras Solar Card",
+    "description": "Card animado para inversores solares Intelbras: potência ao vivo, energia, strings, status e ações.",
+    "not_available": "Inversor indisponível",
+    "missing_entity": "Defina `device` com o inversor Intelbras (ou `entities.work_state`).",
+    "invalid_config": "Configuração inválida",
+    "more_info": "Mais informações",
+    "of_nominal": "{percent}% de {nominal} kW",
+    "limit": "Limite",
+    "limit_on": "Limite de potência {percent}%",
+    "limit_off": "Sem limite de potência",
+    "sync_clock": "Sincronizar relógio",
+    "restart_datalogger": "Reiniciar datalogger",
+    "confirm_restart": "Reiniciar o datalogger WiNet-S? O monitoramento para por cerca de um minuto; o inversor continua gerando.",
+    "confirm_limit_off": "Remover o limite de potência do inversor?",
+    "confirm_limit_on": "Ativar o limite de potência do inversor?",
+    "alarms": "{count} alarmes ativos",
+    "fault_code": "Código de falha {code}"
+  },
+  "status": {
+    "producing": "Gerando",
+    "limited": "Gerando com limitação",
+    "starting": "Iniciando",
+    "standby": "Standby",
+    "night": "Noite",
+    "fault": "Falha",
+    "unavailable": "Indisponível"
+  },
+  "stat": {
+    "energy_today": "Hoje",
+    "energy_month": "Mês",
+    "energy_year": "Ano",
+    "energy_total": "Total",
+    "peak_power_today": "Pico hoje",
+    "specific_yield_today": "Produtividade",
+    "savings_today": "Economia hoje",
+    "co2_avoided": "CO₂ evitado",
+    "running_time_today": "Gerando hoje",
+    "temperature": "Temperatura",
+    "efficiency": "Eficiência"
+  },
+  "editor": {
+    "device": "Dispositivo do inversor",
+    "name": "Nome",
+    "show_name": "Mostrar nome",
+    "show_status": "Mostrar status",
+    "show_toolbar": "Mostrar barra de ações",
+    "show_strings": "Mostrar strings MPPT",
+    "compact_view": "Modo compacto"
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "name": "Intelbras Solar Card",
+  "render_readme": true,
+  "filename": "intelbras-solar-card.js",
+  "homeassistant": "2024.11.0"
+}

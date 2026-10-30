@@ -1,0 +1,52 @@
+{
+  "common": {
+    "name": "Intelbras Solar Card",
+    "description": "Animated card for Intelbras solar inverters: live power, energy, strings, status and actions.",
+    "not_available": "Inverter not available",
+    "missing_entity": "Set `device` to the Intelbras inverter (or `entities.work_state`).",
+    "invalid_config": "Invalid configuration",
+    "more_info": "More info",
+    "of_nominal": "{percent}% of {nominal} kW",
+    "limit": "Limit",
+    "limit_on": "Power limit {percent}%",
+    "limit_off": "No power limit",
+    "sync_clock": "Sync clock",
+    "restart_datalogger": "Restart datalogger",
+    "confirm_restart": "Restart the WiNet-S datalogger? Monitoring stops for about a minute; the inverter keeps producing.",
+    "confirm_limit_off": "Remove the export/power limit of the inverter?",
+    "confirm_limit_on": "Enable the inverter power limit?",
+    "alarms": "{count} active alarms",
+    "fault_code": "Fault code {code}"
+  },
+  "status": {
+    "producing": "Producing",
+    "limited": "Producing (limited)",
+    "starting": "Starting",
+    "standby": "Standby",
+    "night": "Night",
+    "fault": "Fault",
+    "unavailable": "Unavailable"
+  },
+  "stat": {
+    "energy_today": "Today",
+    "energy_month": "Month",
+    "energy_year": "Year",
+    "energy_total": "Total",
+    "peak_power_today": "Peak today",
+    "specific_yield_today": "Yield",
+    "savings_today": "Saved today",
+    "co2_avoided": "CO₂ avoided",
+    "running_time_today": "Producing today",
+    "temperature": "Temperature",
+    "efficiency": "Efficiency"
+  },
+  "editor": {
+    "device": "Inverter device",
+    "name": "Name",
+    "show_name": "Show name",
+    "show_status": "Show status",
+    "show_toolbar": "Show toolbar",
+    "show_strings": "Show MPPT strings",
+    "compact_view": "Compact view"
+  }
+}
