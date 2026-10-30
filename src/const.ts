@@ -59,4 +59,3 @@ export const PRODUCING_STATES = new Set(["running", "alarm_run", "derating_run",
 export const STARTING_STATES = new Set(["starting", "initial_standby"]);
 export const FAULT_STATES = new Set(["fault", "communication_fault", "emergency_stop"]);
 
-export const BRAND_GREEN = "#00a335";

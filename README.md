@@ -11,12 +11,12 @@ running the [Intelbras Solar Local integration](https://github.com/hudsonbrendon
 Same layout as the vacuum card — tips row, animated illustration, name +
 status, stats and a toolbar — but for a solar plant:
 
-- **Animated plant**: sun rays turn and energy flows from the panels through
-  the inverter to the house (faster with more power, glow follows the load),
-  the panels glint, the inverter LED breathes green; amber when derating, red
-  blinking + warning sign on fault, moon and stars at night (`sun.sun`),
-  greyed out when the inverter is offline. Respects `prefers-reduced-motion`
-  and dark mode.
+- **Minimal drawn illustration** in the same grey / white style as the HP
+  printer and vacuum cards: a roof with a 2×4 PV array. While producing the
+  sun turns and a shine sweeps the panels (faster with more power); the sun
+  greys out on standby, moon and stars at night (`sun.sun`), a warning sign
+  over the ridge on fault, greyed out when the inverter is offline. Respects
+  `prefers-reduced-motion` and dark mode.
 - **Tips**: energy today, inverter temperature, datalogger Wi-Fi and active
   alarms.
 - **Power** in large type with a load bar (`% of nominal kW`) and one pill per

@@ -6,32 +6,32 @@ export const cardStyles = css`
     --isc-primary-text-color: var(--primary-text-color);
     --isc-secondary-text-color: var(--secondary-text-color);
     --isc-divider-color: var(--entities-divider-color, var(--divider-color));
-    --isc-accent: #ffb300;
     --isc-ok: var(--success-color, #43a047);
     --isc-warning: var(--warning-color, #ffa600);
     --isc-error: var(--error-color, #db4437);
-    --isc-brand: #00a335;
     --isc-spacing: 10px;
     /* illustration palette (themes / card-mod can override) */
-    --isc-panel-top: #2f5f9e;
-    --isc-panel-bottom: #17345c;
-    --isc-frame: #c9d3df;
-    --isc-inverter: #f3f5f7;
-    --isc-screen: #2b2f36;
-    --isc-house: #fafafa;
-    --isc-roof: #b0533c;
+    --isc-sun: #ffb300;
+    --isc-roof: #e9eaec;
+    --isc-roof-dark: #cfd2d6;
+    --isc-wall: #f6f7f8;
+    --isc-cell: #c3c8ce;
+    --isc-cell-night: #9ea4ab;
+    --isc-cell-line: #ffffff;
     --isc-outline: #9aa0a6;
     --isc-load: 0;
-    --isc-flow-duration: 2s;
+    --isc-shine-duration: 5s;
     display: flex;
     flex: 1;
     flex-direction: column;
   }
   :host([dark-mode]) {
-    --isc-frame: #6b7680;
-    --isc-inverter: #3a3f47;
-    --isc-house: #4a4f58;
-    --isc-roof: #8a3f2d;
+    --isc-roof: #3a3f47;
+    --isc-roof-dark: #2a2e34;
+    --isc-wall: #4a4f58;
+    --isc-cell: #262a30;
+    --isc-cell-night: #1b1e22;
+    --isc-cell-line: #4a4f58;
     --isc-outline: #6b7178;
   }
 
@@ -79,7 +79,7 @@ export const cardStyles = css`
     --mdc-icon-size: 18px;
   }
   .tip.energy ha-icon {
-    color: var(--isc-accent);
+    color: var(--isc-sun);
   }
   .tip.alarm {
     color: var(--isc-warning);
@@ -101,88 +101,68 @@ export const cardStyles = css`
     height: auto;
     overflow: visible;
   }
-  .solar .moon,
-  .solar .warn,
-  .solar .flow {
-    opacity: 0;
-  }
-  .solar .cable {
+  .solar .cell {
+    fill: var(--isc-cell);
     stroke: var(--isc-outline);
-    stroke-width: 3;
-    stroke-linecap: round;
+    stroke-width: 1.2;
+    transition: fill 0.6s ease;
   }
-  .solar .flow {
-    stroke: var(--isc-accent);
-    stroke-width: 3;
-    stroke-linecap: round;
-    stroke-dasharray: 2 9;
+  .solar .cell-lines {
+    fill: none;
+    stroke: var(--isc-cell-line);
+    stroke-width: 0.9;
+    opacity: 0.8;
   }
-  .solar .panel-grid line {
-    stroke: var(--isc-frame);
-  }
-  .solar .window {
-    fill: #90a4ae;
-  }
-  .solar .led {
+  .solar .sun-core {
     fill: var(--isc-outline);
-    transition: fill 0.4s ease;
-  }
-  .solar .sun-glow {
-    opacity: calc(0.25 + var(--isc-load) * 0.75);
-    transform-origin: 52px 42px;
+    transition: fill 0.6s ease;
   }
   .solar .sun-rays {
-    transform-origin: 52px 42px;
+    stroke: var(--isc-outline);
+    transform-origin: 282px 30px;
+  }
+  .solar .moon,
+  .solar .warn,
+  .solar .shine {
+    opacity: 0;
+  }
+  .solar .moon path,
+  .solar .star {
+    fill: var(--isc-outline);
   }
 
-  /* producing: rays turn, energy flows (faster with more power), LED green */
+  /* producing / limited: sun turns, a shine sweeps the array (faster with more power) */
+  .solar.producing .sun-core,
+  .solar.limited .sun-core,
+  .solar.starting .sun-core {
+    fill: var(--isc-sun);
+  }
+  .solar.producing .sun-rays,
+  .solar.limited .sun-rays,
+  .solar.starting .sun-rays {
+    stroke: var(--isc-sun);
+  }
   .solar.producing .sun-rays,
   .solar.limited .sun-rays {
-    animation: spin 18s linear infinite;
+    animation: spin 24s linear infinite;
   }
-  .solar.producing .sun-glow,
-  .solar.limited .sun-glow {
-    animation: pulse 3s ease-in-out infinite;
+  .solar.producing .shine,
+  .solar.limited .shine {
+    animation: shine var(--isc-shine-duration) ease-in-out infinite;
   }
-  .solar.producing .flow,
-  .solar.limited .flow {
-    opacity: 1;
-    animation: flow var(--isc-flow-duration) linear infinite;
+  /* starting: rays breathe */
+  .solar.starting .sun-rays {
+    animation: breathe 1.6s ease-in-out infinite;
   }
-  .solar.producing .glint,
-  .solar.limited .glint {
-    animation: glint 6s ease-in-out infinite;
-  }
-  .solar.producing .led {
-    fill: var(--isc-ok);
-    animation: breathe 2s ease-in-out infinite;
-  }
-  .solar.producing .window,
-  .solar.limited .window {
-    fill: #ffe082;
-  }
-  .solar.limited .led {
-    fill: var(--isc-warning);
-    animation: breathe 1.4s ease-in-out infinite;
-  }
-  .solar.limited .flow {
-    stroke: var(--isc-warning);
-  }
-  /* starting: LED blinks, faint glow */
-  .solar.starting .led {
-    fill: var(--isc-ok);
-    animation: blink 1s steps(2, start) infinite;
-  }
-  /* standby (day, not producing) */
-  .solar.standby .sun-glow {
-    opacity: 0.2;
-  }
-  /* night: moon + stars, panels dark */
+  /* night: moon + stars, darker cells */
   .solar.night .sun {
     opacity: 0;
   }
   .solar.night .moon {
     opacity: 1;
+  }
+  .solar.night .cell {
+    fill: var(--isc-cell-night);
   }
   .solar.night .star {
     animation: twinkle 3s ease-in-out infinite;
@@ -193,23 +173,10 @@ export const cardStyles = css`
   .solar.night .s3 {
     animation-delay: 2s;
   }
-  .solar.night .panel {
-    filter: brightness(0.6);
-  }
-  .solar.night .window {
-    fill: #ffe082;
-  }
-  /* fault */
-  .solar.fault .led {
-    fill: var(--isc-error);
-    animation: blink 0.8s steps(2, start) infinite;
-  }
+  /* fault: warning sign blinks over the ridge */
   .solar.fault .warn {
     opacity: 1;
     animation: breathe 1.2s ease-in-out infinite;
-  }
-  .solar.fault .sun-glow {
-    opacity: 0.2;
   }
   .solar.unavailable {
     opacity: 0.45;
@@ -220,46 +187,27 @@ export const cardStyles = css`
       transform: rotate(360deg);
     }
   }
-  @keyframes pulse {
-    0%,
-    100% {
-      transform: scale(1);
-    }
-    50% {
-      transform: scale(1.12);
-    }
-  }
-  @keyframes flow {
-    to {
-      stroke-dashoffset: -22;
-    }
-  }
-  @keyframes glint {
-    0%,
-    60% {
-      transform: translateX(0);
+  @keyframes shine {
+    0% {
+      transform: translateX(0) skewX(-20deg);
       opacity: 0;
     }
-    70% {
-      opacity: 0.35;
+    15% {
+      opacity: 1;
     }
+    70%,
     100% {
-      transform: translateX(150px);
+      transform: translateX(400px) skewX(-20deg);
       opacity: 0;
     }
   }
   @keyframes breathe {
     0%,
     100% {
-      opacity: 0.5;
+      opacity: 0.4;
     }
     50% {
       opacity: 1;
-    }
-  }
-  @keyframes blink {
-    to {
-      opacity: 0.2;
     }
   }
   @keyframes twinkle {
@@ -320,7 +268,7 @@ export const cardStyles = css`
   .load-fill {
     height: 100%;
     border-radius: 3px;
-    background: linear-gradient(90deg, #ffd54f, var(--isc-accent));
+    background: var(--isc-sun);
     transition: width 0.6s ease;
   }
   .load-text {
@@ -350,7 +298,6 @@ export const cardStyles = css`
   }
   .string ha-icon {
     --mdc-icon-size: 16px;
-    color: #2f5f9e;
   }
   .string b {
     color: var(--isc-primary-text-color);

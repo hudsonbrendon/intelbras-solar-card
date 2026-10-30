@@ -187,7 +187,7 @@ export class IntelbrasSolarCard extends LitElement {
     const solarState = computeState(this.hass, this._entities);
     if (solarState === "unavailable") return this._renderUnavailable();
     const load = loadRatio(this.hass, this._entities);
-    const style = `--isc-load:${load.toFixed(2)};--isc-flow-duration:${(2.6 - load * 2).toFixed(2)}s`;
+    const style = `--isc-load:${load.toFixed(2)};--isc-shine-duration:${(6.5 - load * 3.5).toFixed(2)}s`;
     return html`
       <ha-card style=${style}>
         <div class="preview">
